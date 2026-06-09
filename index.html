@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Ventas CRC | Azul & Amarillo | Degradados Elegantes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fa;
+            padding: 28px 32px;
+            color: #1a1a1a;
+        }
+        .dashboard { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            gap: 15px;
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1a3a5c, #2c5a7a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .sub { color: #4a627a; margin-top: 6px; font-weight: 500; }
+        .filter-box {
+            background: white;
+            padding: 8px 22px;
+            border-radius: 50px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        select {
+            padding: 8px 18px;
+            border-radius: 40px;
+            border: 1px solid #dce5ec;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+            color: #1a1a1a;
+        }
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 22px;
+            margin-bottom: 35px;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 18px 22px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: 0.2s;
+            border: 1px solid #eef2f6;
+        }
+        .card i { font-size: 1.8rem; color: #e8a735; margin-bottom: 10px; }
+        .card-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #6a7e9e; letter-spacing: 1px; }
+        .card-value { font-size: 1.8rem; font-weight: 800; color: #1a3a5c; margin-top: 6px; }
+        .card-trend { font-size: 0.75rem; margin-top: 8px; color: #7a8ea8; }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 28px;
+            margin-bottom: 32px;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 28px;
+            padding: 18px 18px 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f6;
+        }
+        .chart-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-left: 4px solid #e8a735;
+            padding-left: 12px;
+            color: #1a3a5c;
+        }
+        canvas { max-height: 280px; width: 100%; }
+        .mini-donuts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .donut-item {
+            text-align: center;
+            background: #fefefe;
+            border-radius: 24px;
+            padding: 12px;
+        }
+        .donut-item h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1a3a5c;
+            margin-bottom: 10px;
+        }
+        .donut-item canvas {
+            max-height: 140px !important;
+            height: 140px !important;
+        }
+        .donut-total {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1a3a5c;
+            margin-top: 8px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 900px;
+        }
+        th {
+            text-align: left;
+            padding: 14px 8px;
+            background: #f0f4f8;
+            color: #1a3a5c;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #edf2f6;
+            color: #1a1a1a;
+        }
+        input {
+            width: 120px;
+            padding: 6px 8px;
+            border-radius: 14px;
+            border: 1px solid #dce5ec;
+            font-family: monospace;
+            font-weight: 500;
+            text-align: right;
+            background: #fefefe;
+            color: #1a1a1a;
+        }
+        .badge-success {
+            background: #e0e8f0;
+            color: #1a3a5c;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .badge-danger {
+            background: #fce8e6;
+            color: #c0392b;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        footer {
+            text-align: center;
+            margin-top: 35px;
+            font-size: 0.7rem;
+            color: #9aaebf;
+        }
+        @media (max-width: 1000px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            body { padding: 16px; }
+        }
+        .btn-add-month {
+            background: #1a3a5c;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.75rem;
+            margin-left: 12px;
+        }
+        .btn-add-month:hover { background: #2c5a7a; }
+        .add-month-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .add-month-cell input {
+            width: 100px;
+            padding: 6px 10px;
+        }
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #1a3a5c;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="header">
+        <div>
+            <h1><i class="fas fa-chart-line"></i> Ventas 2026 · Mundo Ilumincación CR</h1>
+            <div class="sub">Resumen de ventas por tienda y métricas clave</div>
+        </div>
+        <div class="filter-box">
+            <i class="fas fa-calendar-alt" style="color:#e8a735;"></i>
+            <label>Mes a visualizar:</label>
+            <select id="monthSelector"></select>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-row" id="kpiArea"></div>
+
+    <!-- Gráficos: Barras vertical + Horizontal Venta vs Meta -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3><i class="fas fa-chart-bar"></i> Ventas mensuales · Tiendas físicas</h3>
+            <canvas id="barMonthlyChart" height="260"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3><i class="fas fa-chart-simple"></i> Venta vs Meta · <span id="goalCompareMonth">Mayo</span></h3>
+            <canvas id="horizontalGoalChart" height="260"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráficos de anillo: Tienda Virtual y Cabinas La Sirena -->
+    <div class="chart-card" style="margin-bottom: 32px;">
+        <h3><i class="fas fa-chart-pie"></i> Tienda Virtual & Cabinas La Sirena · Participación mensual</h3>
+        <div class="mini-donuts">
+            <div class="donut-item">
+                <h4><i class="fas fa-laptop"></i> Tienda Virtual</h4>
+                <canvas id="virtualDonutChart" height="140" width="140"></canvas>
+                <div class="donut-total" id="virtualDonutTotal">₡ 0</div>
+            </div>
+            <div class="donut-item">
+                <h4><i class="fas fa-umbrella-beach"></i> Cabinas La Sirena</h4>
+                <canvas id="cabinasDonutChart" height="140" width="140"></canvas>
+                <div class="donut-total" id="cabinasDonutTotal">₡ 0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla editable de tiendas físicas -->
+    <div class="table-container">
+        <h3 style="margin-bottom: 16px;"><i class="fas fa-edit"></i> Ventas por tienda física (CRC) · Editable</h3>
+        <table id="salesEditableTable">
+            <thead id="tableHeader">
+                <tr id="headerRow">
+                    <th>Tienda</th>
+                    <th>Total (CRC)</th>
+                    <th>Meta programada (CRC)</th>
+                    <th>Diferencia (Meta - Último mes)</th>
+                    <th>% Meta</th>
+                </tr>
+                <tr id="addMonthRow">
+                    <th colspan="100%" style="background: white; padding: 10px;">
+                        <div class="add-month-cell">
+                            <i class="fas fa-plus-circle" style="color:#1a3a5c;"></i>
+                            <span style="font-weight: normal;">Agregar nuevo mes:</span>
+                            <input type="text" id="newMonthName" placeholder="Ej: Junio 2026">
+                            <button class="btn-add-month" id="addMonthBtn"><i class="fas fa-plus"></i> Agregar mes</button>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="editableTableBody"></tbody>
+        </table>
+        
+        <div class="section-title"><i class="fas fa-laptop"></i> Tienda Virtual & <i class="fas fa-umbrella-beach"></i> Cabinas La Sirena (editables por mes)</div>
+        <table id="virtualCabinasTable">
+            <thead>
+                <tr id="virtualHeader">
+                    <th>Concepto</th>
+                </tr>
+            </thead>
+            <tbody id="virtualCabinasBody"></tbody>
+        </table>
+    </div>
+    <footer>Desarrollado por - Alejandro Robleto - HumTech 🐦 CR</footer>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // DATOS INICIALES EN CRC - PALETA AZUL & AMARILLO
+    // --------------------------------------------------------------
+    let stores = ["San Sebastian (MI)", "Comercial ZHEN", "San Pedro", "Lindora", "Mundo Reloj", "Casa Regalo"];
+    let monthsList = ["Enero", "Febrero", "Marzo", "Abril", "Mayo"];
+    
+    let salesCRC = {
+        "Enero":   [55024980, 27803761, 51419756, 27516151, 55952658, 41290076],
+        "Febrero": [41354635, 31944352, 38231077, 44625187, 35321151, 40706739],
+        "Marzo":   [58199376, 27055628, 43985631, 57650039, 29902872, 29858008],
+        "Abril":   [50381236, 36749980, 43010505, 44790323, 26066200, 24468613],
+        "Mayo":    [45813872, 36029760, 47563883, 43939918, 36568713, 43483861]
+    };
+    
+    let metasProgramadas = [45000000, 38000000, 48000000, 44000000, 37000000, 42000000];
+    let virtualSalesCRC = [426600850, 3825435900, 3775703800, 2669952450, 4985025650];
+    let cabinasSalesCRC = [162250000, 365949650, 401586350, 288061950, 237600000];
+    
+    // Referencias a gráficos
+    let barChart, horizontalGoalChart, virtualDonut, cabinasDonut;
+    
+    // Colores Azul & Amarillo
+    const azulOscuro = '#1a3a5c';
+    const azulMedio = '#2c5a7a';
+    const azulClaro = '#4a7a9a';
+    const amarilloOro = '#e8a735';
+    const amarilloSuave = '#f0c27b';
+    const grisFondo = '#f0f4f8';
+    const rojoSuave = '#c0392b';
+    
+    // Degradados para gráficos
+    const barGradient = (ctx) => {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, azulMedio);
+        gradient.addColorStop(1, azulOscuro);
+        return gradient;
+    };
+    
+    const horizontalGradient = (ctx) => {
+        const gradient = ctx.createLinearGradient(0, 0, 300, 0);
+        gradient.addColorStop(0, amarilloOro);
+        gradient.addColorStop(1, amarilloSuave);
+        return gradient;
+    };
+    
+    const successGradient = (ctx) => {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, azulMedio);
+        gradient.addColorStop(1, azulOscuro);
+        return gradient;
+    };
+    
+    const dangerGradient = (ctx) => {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, rojoSuave);
+        gradient.addColorStop(1, '#e07a5f');
+        return gradient;
+    };
+    
+    function computeTotalByStore() {
+        let totals = new Array(stores.length).fill(0);
+        for(let m of monthsList) {
+            if(salesCRC[m]) {
+                for(let i=0; i<stores.length; i++) totals[i] += salesCRC[m][i];
+            }
+        }
+        return totals;
+    }
+    
+    function getLastMonth() { return monthsList[monthsList.length - 1]; }
+    
+    function renderEditableTable() {
+        let tbody = document.getElementById('editableTableBody');
+        let headerRow = document.getElementById('headerRow');
+        while(headerRow.children.length > 5) headerRow.removeChild(headerRow.children[1]);
+        let insertPos = 1;
+        for(let i=0; i<monthsList.length; i++) {
+            let th = document.createElement('th');
+            th.innerText = `${monthsList[i]} (CRC)`;
+            headerRow.insertBefore(th, headerRow.children[insertPos]);
+            insertPos++;
+        }
+        tbody.innerHTML = '';
+        let totals = computeTotalByStore();
+        let lastMonth = getLastMonth();
+        
+        for(let i=0; i<stores.length; i++) {
+            let row = document.createElement('tr');
+            let tdName = document.createElement('td'); tdName.innerText = stores[i]; tdName.style.fontWeight = '600'; tdName.style.color = '#1a3a5c'; row.appendChild(tdName);
+            for(let idxMonth=0; idxMonth<monthsList.length; idxMonth++) {
+                let month = monthsList[idxMonth];
+                let td = document.createElement('td');
+                let input = document.createElement('input');
+                input.type = 'number';
+                input.value = salesCRC[month][i];
+                input.style.width = '110px';
+                input.addEventListener('change', (function(m,iStore) {
+                    return function(e) {
+                        let newVal = parseFloat(e.target.value);
+                        if(!isNaN(newVal)) salesCRC[m][iStore] = newVal;
+                        renderEditableTable();
+                        updateAllChartsAndKPI();
+                        renderVirtualCabinasTable();
+                    };
+                })(month, i));
+                td.appendChild(input);
+                row.appendChild(td);
+            }
+            let tdTotal = document.createElement('td'); tdTotal.innerText = totals[i].toLocaleString('en-US'); tdTotal.style.fontWeight='bold'; tdTotal.style.color = '#1a3a5c'; row.appendChild(tdTotal);
+            let tdMeta = document.createElement('td');
+            let metaInput = document.createElement('input');
+            metaInput.type = 'number';
+            metaInput.value = metasProgramadas[i];
+            metaInput.addEventListener('change', (function(idx) { 
+                return function(e) { metasProgramadas[idx] = parseFloat(e.target.value) || 0; renderEditableTable(); updateAllChartsAndKPI(); }; 
+            })(i));
+            tdMeta.appendChild(metaInput);
+            row.appendChild(tdMeta);
+            let ventaUltimoMes = salesCRC[lastMonth][i];
+            let diferencia = metasProgramadas[i] - ventaUltimoMes;
+            let tdDif = document.createElement('td'); tdDif.innerText = diferencia.toLocaleString('en-US'); row.appendChild(tdDif);
+            let tdStatus = document.createElement('td');
+            let logrado = ventaUltimoMes >= metasProgramadas[i];
+            let statusText = logrado ? "✅ Meta lograda" : "❌ No superada";
+            let badgeClass = logrado ? "badge-success" : "badge-danger";
+            tdStatus.innerHTML = `<span class="${badgeClass}">${statusText}</span>`;
+            row.appendChild(tdStatus);
+            tbody.appendChild(row);
+        }
+        let selector = document.getElementById('monthSelector');
+        let currentVal = selector.value;
+        selector.innerHTML = '';
+        for(let m of monthsList) {
+            let opt = document.createElement('option');
+            opt.value = m; opt.innerText = m;
+            if(m === currentVal) opt.selected = true;
+            selector.appendChild(opt);
+        }
+        if(!monthsList.includes(currentVal) && monthsList.length>0) selector.value = monthsList[0];
+    }
+    
+    function renderVirtualCabinasTable() {
+        let headerRow = document.getElementById('virtualHeader');
+        while(headerRow.children.length > 1) headerRow.removeChild(headerRow.children[1]);
+        for(let i=0; i<monthsList.length; i++) {
+            let th = document.createElement('th'); th.innerText = monthsList[i]; headerRow.appendChild(th);
+        }
+        let tbody = document.getElementById('virtualCabinasBody');
+        tbody.innerHTML = '';
+        let rowVirtual = document.createElement('tr');
+        let tdVirtualLabel = document.createElement('td'); tdVirtualLabel.innerHTML = '<i class="fas fa-laptop"></i> Tienda Virtual'; tdVirtualLabel.style.fontWeight = '600'; tdVirtualLabel.style.color = '#1a3a5c'; rowVirtual.appendChild(tdVirtualLabel);
+        for(let i=0; i<monthsList.length; i++) {
+            let td = document.createElement('td');
+            let input = document.createElement('input');
+            input.type = 'number';
+            input.value = virtualSalesCRC[i];
+            input.addEventListener('change', (function(idx) { return function(e) { virtualSalesCRC[idx] = parseFloat(e.target.value) || 0; updateAllChartsAndKPI(); }; })(i));
+            td.appendChild(input);
+            rowVirtual.appendChild(td);
+        }
+        tbody.appendChild(rowVirtual);
+        let rowCabinas = document.createElement('tr');
+        let tdCabinasLabel = document.createElement('td'); tdCabinasLabel.innerHTML = '<i class="fas fa-umbrella-beach"></i> Cabinas La Sirena'; tdCabinasLabel.style.fontWeight = '600'; tdCabinasLabel.style.color = '#1a3a5c'; rowCabinas.appendChild(tdCabinasLabel);
+        for(let i=0; i<monthsList.length; i++) {
+            let td = document.createElement('td');
+            let input = document.createElement('input');
+            input.type = 'number';
+            input.value = cabinasSalesCRC[i];
+            input.addEventListener('change', (function(idx) { return function(e) { cabinasSalesCRC[idx] = parseFloat(e.target.value) || 0; updateAllChartsAndKPI(); }; })(i));
+            td.appendChild(input);
+            rowCabinas.appendChild(td);
+        }
+        tbody.appendChild(rowCabinas);
+    }
+    
+    function updateKPI(selectedMonth) {
+        if(!salesCRC[selectedMonth]) return;
+        let monthSales = salesCRC[selectedMonth];
+        let totalMes = monthSales.reduce((a,b)=>a+b,0);
+        let idx = monthsList.indexOf(selectedMonth);
+        let virtualMes = virtualSalesCRC[idx] || 0;
+        let cabinasMes = cabinasSalesCRC[idx] || 0;
+        let mejorTiendaIdx = monthSales.indexOf(Math.max(...monthSales));
+        let mejorTienda = stores[mejorTiendaIdx];
+        let totalGeneral = totalMes + virtualMes + cabinasMes;
+        let pctFisicas = totalGeneral > 0 ? (totalMes / totalGeneral * 100).toFixed(1) : 0;
+        let pctVirtual = totalGeneral > 0 ? (virtualMes / totalGeneral * 100).toFixed(1) : 0;
+        let pctCabinas = totalGeneral > 0 ? (cabinasMes / totalGeneral * 100).toFixed(1) : 0;
+        let kpiHtml = `
+            <div class="card"><i class="fas fa-store"></i><div class="card-title">Ventas físicas (${selectedMonth})</div><div class="card-value">₡ ${totalMes.toLocaleString('en-US')}</div><div class="card-trend">${pctFisicas}% del total</div></div>
+            <div class="card"><i class="fas fa-laptop"></i><div class="card-title">Tienda Virtual · ${selectedMonth}</div><div class="card-value">₡ ${virtualMes.toLocaleString('en-US')}</div><div class="card-trend">${pctVirtual}% del total</div></div>
+            <div class="card"><i class="fas fa-umbrella-beach"></i><div class="card-title">Cabinas La Sirena · ${selectedMonth}</div><div class="card-value">₡ ${cabinasMes.toLocaleString('en-US')}</div><div class="card-trend">${pctCabinas}% del total</div></div>
+            <div class="card"><i class="fas fa-crown"></i><div class="card-title">Mejor tienda física</div><div class="card-value">${mejorTienda}</div><div class="card-trend">💰 Mayor facturación</div></div>
+        `;
+        document.getElementById('kpiArea').innerHTML = kpiHtml;
+    }
+    
+    function updateDonuts(month) {
+        let idx = monthsList.indexOf(month);
+        let virtualVal = virtualSalesCRC[idx] || 0;
+        let cabinasVal = cabinasSalesCRC[idx] || 0;
+        let totalVirtual = virtualSalesCRC.reduce((a,b)=>a+b,0);
+        let totalCabinas = cabinasSalesCRC.reduce((a,b)=>a+b,0);
+        
+        virtualDonut.data.datasets[0].data = [virtualVal, totalVirtual - virtualVal];
+        virtualDonut.options.plugins.tooltip.callbacks.label = function(context) {
+            let val = context.raw;
+            let pct = totalVirtual > 0 ? (val / totalVirtual * 100).toFixed(1) : 0;
+            return `₡ ${val.toLocaleString('en-US')} (${pct}% del año)`;
+        };
+        virtualDonut.update();
+        
+        cabinasDonut.data.datasets[0].data = [cabinasVal, totalCabinas - cabinasVal];
+        cabinasDonut.options.plugins.tooltip.callbacks.label = function(context) {
+            let val = context.raw;
+            let pct = totalCabinas > 0 ? (val / totalCabinas * 100).toFixed(1) : 0;
+            return `₡ ${val.toLocaleString('en-US')} (${pct}% del año)`;
+        };
+        cabinasDonut.update();
+        
+        document.getElementById('virtualDonutTotal').innerHTML = `₡ ${virtualVal.toLocaleString('en-US')}`;
+        document.getElementById('cabinasDonutTotal').innerHTML = `₡ ${cabinasVal.toLocaleString('en-US')}`;
+    }
+    
+    function updateHorizontalGoalChart(month) {
+        if(!salesCRC[month]) return;
+        let ventasMes = salesCRC[month];
+        if(horizontalGoalChart) {
+            horizontalGoalChart.data.datasets[0].data = ventasMes;
+            horizontalGoalChart.data.datasets[1].data = metasProgramadas;
+            horizontalGoalChart.update();
+        }
+        document.getElementById('goalCompareMonth').innerText = month;
+    }
+    
+    function updateBarChart() {
+        let monthlyTotals = monthsList.map(m => salesCRC[m] ? salesCRC[m].reduce((a,b)=>a+b,0) : 0);
+        if(barChart) {
+            barChart.data.datasets[0].data = monthlyTotals;
+            barChart.data.labels = [...monthsList];
+            barChart.update();
+        }
+    }
+    
+    function updateAllChartsAndKPI() {
+        let selected = document.getElementById('monthSelector').value;
+        if(selected && salesCRC[selected]) {
+            updateKPI(selected);
+            updateHorizontalGoalChart(selected);
+            updateDonuts(selected);
+        } else if(monthsList.length > 0) {
+            updateKPI(monthsList[0]);
+            updateHorizontalGoalChart(monthsList[0]);
+            updateDonuts(monthsList[0]);
+        }
+        updateBarChart();
+        renderEditableTable();
+        renderVirtualCabinasTable();
+    }
+    
+    function addNewMonth() {
+        let newName = document.getElementById('newMonthName').value.trim();
+        if(!newName) { alert("Ingresa un nombre para el nuevo mes"); return; }
+        if(monthsList.includes(newName)) { alert("Este mes ya existe."); return; }
+        monthsList.push(newName);
+        let newSales = new Array(stores.length).fill(0);
+        salesCRC[newName] = newSales;
+        virtualSalesCRC.push(0);
+        cabinasSalesCRC.push(0);
+        document.getElementById('newMonthName').value = '';
+        renderEditableTable();
+        renderVirtualCabinasTable();
+        document.getElementById('monthSelector').value = newName;
+        updateAllChartsAndKPI();
+    }
+    
+    // Plugin para etiquetas de datos con degradado
+    const dataLabelsPlugin = {
+        id: 'dataLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx, data } = chart;
+            ctx.save();
+            ctx.font = 'bold 11px "Inter"';
+            ctx.fillStyle = '#1a3a5c';
+            ctx.textAlign = 'center';
+            chart.data.datasets.forEach((dataset, datasetIndex) => {
+                const meta = chart.getDatasetMeta(datasetIndex);
+                meta.data.forEach((element, index) => {
+                    const value = dataset.data[index];
+                    if (value !== undefined && value !== null) {
+                        const position = element.tooltipPosition();
+                        let formattedValue = value >= 1000000 ? '₡ ' + (value / 1000000).toFixed(1) + 'M' : '₡ ' + value.toLocaleString('en-US');
+                        if (value >= 1000000000) formattedValue = '₡ ' + (value / 1000000000).toFixed(1) + 'B';
+                        ctx.fillText(formattedValue, position.x, position.y - 6);
+                    }
+                });
+            });
+            ctx.restore();
+        }
+    };
+    
+    function initCharts() {
+        const ctxBar = document.getElementById('barMonthlyChart').getContext('2d');
+        const ctxHorizontal = document.getElementById('horizontalGoalChart').getContext('2d');
+        const ctxVirtual = document.getElementById('virtualDonutChart').getContext('2d');
+        const ctxCabinas = document.getElementById('cabinasDonutChart').getContext('2d');
+        
+        // Gráfico de barras con degradado azul
+        const gradientBar = ctxBar.createLinearGradient(0, 0, 0, 280);
+        gradientBar.addColorStop(0, azulMedio);
+        gradientBar.addColorStop(1, azulOscuro);
+        
+        barChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: { labels: monthsList, datasets: [{ label: 'Ventas totales (CRC)', data: monthsList.map(m => salesCRC[m].reduce((a,b)=>a+b,0)), backgroundColor: gradientBar, borderRadius: 10, barPercentage: 0.65 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `₡ ${ctx.raw.toLocaleString('en-US')}` } }, legend: { position: 'top', labels: { color: '#1a1a1a' } } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'Monto (CRC)', color: '#1a1a1a' }, ticks: { callback: (val) => '₡ ' + val.toLocaleString('en-US'), color: '#1a1a1a' } }, x: { ticks: { color: '#1a1a1a' } } } },
+            plugins: [dataLabelsPlugin]
+        });
+        
+        // Gráfico horizontal con degradado amarillo para meta
+        const gradientHorizontal = ctxHorizontal.createLinearGradient(0, 0, 300, 0);
+        gradientHorizontal.addColorStop(0, amarilloOro);
+        gradientHorizontal.addColorStop(1, amarilloSuave);
+        
+        horizontalGoalChart = new Chart(ctxHorizontal, {
+            type: 'bar',
+            data: { labels: stores, datasets: [
+                { label: 'Venta real (CRC)', data: salesCRC["Mayo"], backgroundColor: azulMedio, borderRadius: 8, barPercentage: 0.7 },
+                { label: 'Meta programada (CRC)', data: metasProgramadas, backgroundColor: gradientHorizontal, borderRadius: 8, barPercentage: 0.7 }
+            ] },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => { let idx = ctx.dataIndex; let venta = salesCRC["Mayo"][idx]; let meta = metasProgramadas[idx]; let pct = meta > 0 ? (venta / meta * 100).toFixed(1) : 0; return `${ctx.dataset.label}: ₡ ${ctx.raw.toLocaleString('en-US')} (${pct}%)`; } } }, legend: { position: 'top', labels: { color: '#1a1a1a' } } }, scales: { x: { ticks: { callback: (val) => '₡ ' + val.toLocaleString('en-US'), color: '#1a1a1a' } }, y: { ticks: { color: '#1a1a1a' } } } }
+        });
+        
+        // Anillos con degradados
+        virtualDonut = new Chart(ctxVirtual, { 
+            type: 'doughnut', 
+            data: { labels: ['Mes actual', 'Resto del año'], datasets: [{ data: [0, 100], backgroundColor: [azulMedio, '#e0e8f0'], cutout: '60%', borderRadius: 8 }] }, 
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 }, color: '#1a1a1a' } }, tooltip: { callbacks: { label: (ctx) => `₡ ${ctx.raw.toLocaleString('en-US')}` } } } } 
+        });
+        
+        cabinasDonut = new Chart(ctxCabinas, { 
+            type: 'doughnut', 
+            data: { labels: ['Mes actual', 'Resto del año'], datasets: [{ data: [0, 100], backgroundColor: [amarilloOro, '#e0e8f0'], cutout: '60%', borderRadius: 8 }] }, 
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 }, color: '#1a1a1a' } }, tooltip: { callbacks: { label: (ctx) => `₡ ${ctx.raw.toLocaleString('en-US')}` } } } } 
+        });
+    }
+    
+    document.getElementById('addMonthBtn').addEventListener('click', addNewMonth);
+    document.getElementById('monthSelector').addEventListener('change', (e) => { updateKPI(e.target.value); updateHorizontalGoalChart(e.target.value); updateDonuts(e.target.value); });
+    
+    initCharts();
+    renderEditableTable();
+    renderVirtualCabinasTable();
+    updateKPI('Mayo');
+    updateHorizontalGoalChart('Mayo');
+    updateDonuts('Mayo');
+    updateBarChart();
+</script>
+</body>
+</html>
